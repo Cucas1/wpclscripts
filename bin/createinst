@@ -1,12 +1,16 @@
 #!/bin/bash
 
-# Solicitar dados do usuário
+# Caminho base do repositório e templates
+REPO_BASE="$(dirname "$(readlink -f "$0")")"
+TEMPLATES_DIR="$REPO_BASE/../templates"
+
+# Solicitar informações ao usuário
 read -p "Nome da instância: " INSTANCE_NAME
 read -p "Domínio (ex.: exemplo.com): " DOMAIN
-read -p "Usuário WordPress: " WP_USER
+read -p "Usuário WordPress (admin): " WP_USER
 read -p "Senha WordPress: " WP_PASS
 read -p "Email do administrador: " WP_EMAIL
-read -p "Deseja criar uma instância staging? (s/n): " STAGING
+read -p "Deseja criar uma instância staging? (s/n): " STAGING_CHOICE
 
 # Diretórios
 BASE_DIR="/opt/wordpress"
@@ -22,16 +26,19 @@ fi
 # Criar diretório para a instância
 mkdir -p "$INSTANCE_DIR"
 
-# Copiar arquivos necessários para a instância
-cp /path/to/templates/docker-compose.yml "$INSTANCE_DIR/docker-compose.yml"
-cp /path/to/templates/Dockerfile "$INSTANCE_DIR/Dockerfile"
-cp /path/to/templates/plugins.txt "$INSTANCE_DIR/plugins.txt"
+# Copiar templates para o diretório da instância
+cp "$TEMPLATES_DIR/docker-compose.yml" "$INSTANCE_DIR/docker-compose.yml" || {
+  echo "Erro ao copiar docker-compose.yml"; exit 1; }
+cp "$TEMPLATES_DIR/Dockerfile" "$INSTANCE_DIR/Dockerfile" || {
+  echo "Erro ao copiar Dockerfile"; exit 1; }
+cp "$TEMPLATES_DIR/plugins.txt" "$INSTANCE_DIR/plugins.txt" || {
+  echo "Erro ao copiar plugins.txt"; exit 1; }
 
-# Configurar docker-compose.yml
+# Personalizar o docker-compose.yml
 sed -i "s/INSTANCE_NAME/$INSTANCE_NAME/g" "$INSTANCE_DIR/docker-compose.yml"
 sed -i "s/DOMAIN/$DOMAIN/g" "$INSTANCE_DIR/docker-compose.yml"
 
-# Subir contêiner da instância
+# Construir e iniciar a instância
 cd "$INSTANCE_DIR"
 docker-compose build wordpress || { echo "Erro ao construir a imagem Docker."; exit 1; }
 docker-compose up -d || { echo "Erro ao iniciar os contêineres."; exit 1; }
@@ -41,20 +48,25 @@ certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$WP_EMAIL" || {
   echo "Erro ao configurar SSL para o domínio $DOMAIN."
 }
 
-# Configurar staging (opcional)
-if [[ "$STAGING" == "s" ]]; then
+# Configurar instância staging, se solicitado
+if [[ "$STAGING_CHOICE" == "s" ]]; then
   mkdir -p "$STAGING_DIR"
-  cp /path/to/templates/docker-compose.yml "$STAGING_DIR/docker-compose.yml"
+  cp "$TEMPLATES_DIR/docker-compose.yml" "$STAGING_DIR/docker-compose.yml" || {
+    echo "Erro ao copiar docker-compose.yml para staging"; exit 1; }
+  cp "$TEMPLATES_DIR/Dockerfile" "$STAGING_DIR/Dockerfile"
+  cp "$TEMPLATES_DIR/plugins.txt" "$STAGING_DIR/plugins.txt"
+
   sed -i "s/INSTANCE_NAME/${INSTANCE_NAME}_staging/g" "$STAGING_DIR/docker-compose.yml"
   sed -i "s/DOMAIN/staging.$DOMAIN/g" "$STAGING_DIR/docker-compose.yml"
-  cp /path/to/templates/Dockerfile "$STAGING_DIR/Dockerfile"
-  cp /path/to/templates/plugins.txt "$STAGING_DIR/plugins.txt"
 
   cd "$STAGING_DIR"
   docker-compose build wordpress
-  docker-compose up -d
-  certbot --nginx -d "staging.$DOMAIN" --non-interactive --agree-tos -m "$WP_EMAIL"
-  echo "Instância staging criada com sucesso em staging.$DOMAIN"
+  docker-compose up -d || { echo "Erro ao iniciar os contêineres de staging."; exit 1; }
+  certbot --nginx -d "staging.$DOMAIN" --non-interactive --agree-tos -m "$WP_EMAIL" || {
+    echo "Erro ao configurar SSL para staging.$DOMAIN."
+  }
+
+  echo "Instância staging criada com sucesso em staging.$DOMAIN."
 fi
 
 echo "Instância $INSTANCE_NAME criada com sucesso!"

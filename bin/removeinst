@@ -1,24 +1,22 @@
 #!/bin/bash
 
-# Solicita o nome da instância
 read -p "Nome da instância a ser removida: " INSTANCE_NAME
-
-# Diretório da instância
 INSTANCE_DIR="/opt/wordpress/$INSTANCE_NAME"
 
 if [[ ! -d "$INSTANCE_DIR" ]]; then
-    echo "Erro: Instância $INSTANCE_NAME não encontrada."
-    exit 1
+  echo "Erro: Instância $INSTANCE_NAME não encontrada."
+  exit 1
 fi
 
 read -p "Deseja realizar backup antes de remover (s/n)? " BACKUP_CHOICE
 if [[ "$BACKUP_CHOICE" == "s" ]]; then
-    tar -czvf "/opt/wordpress/${INSTANCE_NAME}-backup.tar.gz" "$INSTANCE_DIR"
-    echo "Backup salvo em /opt/wordpress/${INSTANCE_NAME}-backup.tar.gz."
+  tar -czvf "/opt/wordpress/${INSTANCE_NAME}-backup.tar.gz" "$INSTANCE_DIR" || {
+    echo "Erro ao criar backup de $INSTANCE_NAME."; exit 1; }
+  echo "Backup salvo em /opt/wordpress/${INSTANCE_NAME}-backup.tar.gz."
 fi
 
 cd "$INSTANCE_DIR"
-docker-compose down -v
-rm -rf "$INSTANCE_DIR"
+docker-compose down -v || { echo "Erro ao remover contêineres de $INSTANCE_NAME."; exit 1; }
+rm -rf "$INSTANCE_DIR" || { echo "Erro ao remover diretório da instância $INSTANCE_NAME."; exit 1; }
 
-echo "Instância $INSTANCE_NAME removida com sucesso!"
+echo "Instância $INSTANCE_NAME removida com sucesso."
