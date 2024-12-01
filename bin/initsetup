@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Atualiza o sistema e instala pacotes básicos
+echo "Atualizando o sistema e instalando pacotes básicos..."
+apt update && apt upgrade -y
+apt install -y docker.io docker-compose git curl certbot python3-certbot-nginx nginx unzip || {
+    echo "Erro ao instalar pacotes básicos."
+    exit 1
+}
+
+# Inicia e habilita Docker
+echo "Configurando Docker..."
+systemctl start docker
+systemctl enable docker
+
+# Finalização
+echo "Sistema atualizado e pacotes básicos instalados com sucesso!"

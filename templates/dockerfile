@@ -1,0 +1,26 @@
+# Baseado na imagem oficial do WordPress
+FROM wordpress:php8.1-fpm
+
+# Instalar dependências necessárias
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Diretório do WordPress
+WORKDIR /var/www/html
+
+# Instalar WP-CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x wp-cli.phar \
+    && mv wp-cli.phar /usr/local/bin/wp
+
+# Copiar lista de plugins para a imagem
+COPY plugins.txt /plugins.txt
+
+# Baixar e ativar os plugins
+RUN wp core download --allow-root \
+    && wp plugin install $(cat /plugins.txt) --activate --allow-root
+
+# Finalizar com o PHP-FPM
+CMD ["php-fpm"]

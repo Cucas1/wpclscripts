@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Solicitar dados do usuário
+read -p "Nome da instância: " INSTANCE_NAME
+read -p "Domínio (ex.: exemplo.com): " DOMAIN
+read -p "Usuário WordPress: " WP_USER
+read -p "Senha WordPress: " WP_PASS
+read -p "Email do administrador: " WP_EMAIL
+read -p "Deseja criar uma instância staging? (s/n): " STAGING
+
+# Diretórios
+BASE_DIR="/opt/wordpress"
+INSTANCE_DIR="$BASE_DIR/$INSTANCE_NAME"
+STAGING_DIR="$BASE_DIR/${INSTANCE_NAME}-staging"
+
+# Verificar se a instância já existe
+if [[ -d "$INSTANCE_DIR" ]]; then
+  echo "Erro: Uma instância com este nome já existe."
+  exit 1
+fi
+
+# Criar diretório para a instância
+mkdir -p "$INSTANCE_DIR"
+
+# Copiar arquivos necessários para a instância
+cp /path/to/templates/docker-compose.yml "$INSTANCE_DIR/docker-compose.yml"
+cp /path/to/templates/Dockerfile "$INSTANCE_DIR/Dockerfile"
+cp /path/to/templates/plugins.txt "$INSTANCE_DIR/plugins.txt"
+
+# Configurar docker-compose.yml
+sed -i "s/INSTANCE_NAME/$INSTANCE_NAME/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/DOMAIN/$DOMAIN/g" "$INSTANCE_DIR/docker-compose.yml"
+
+# Subir contêiner da instância
+cd "$INSTANCE_DIR"
+docker-compose build wordpress || { echo "Erro ao construir a imagem Docker."; exit 1; }
+docker-compose up -d || { echo "Erro ao iniciar os contêineres."; exit 1; }
+
+# Configurar SSL para produção
+certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$WP_EMAIL" || {
+  echo "Erro ao configurar SSL para o domínio $DOMAIN."
+}
+
+# Configurar staging (opcional)
+if [[ "$STAGING" == "s" ]]; then
+  mkdir -p "$STAGING_DIR"
+  cp /path/to/templates/docker-compose.yml "$STAGING_DIR/docker-compose.yml"
+  sed -i "s/INSTANCE_NAME/${INSTANCE_NAME}_staging/g" "$STAGING_DIR/docker-compose.yml"
+  sed -i "s/DOMAIN/staging.$DOMAIN/g" "$STAGING_DIR/docker-compose.yml"
+  cp /path/to/templates/Dockerfile "$STAGING_DIR/Dockerfile"
+  cp /path/to/templates/plugins.txt "$STAGING_DIR/plugins.txt"
+
+  cd "$STAGING_DIR"
+  docker-compose build wordpress
+  docker-compose up -d
+  certbot --nginx -d "staging.$DOMAIN" --non-interactive --agree-tos -m "$WP_EMAIL"
+  echo "Instância staging criada com sucesso em staging.$DOMAIN"
+fi
+
+echo "Instância $INSTANCE_NAME criada com sucesso!"

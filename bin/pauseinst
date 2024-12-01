@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Solicita o nome da instância
+read -p "Nome da instância a ser pausada: " INSTANCE_NAME
+
+# Diretório da instância
+INSTANCE_DIR="/opt/wordpress/$INSTANCE_NAME"
+
+if [[ -d "$INSTANCE_DIR" ]]; then
+    cd "$INSTANCE_DIR"
+    docker-compose down
+    echo "Instância $INSTANCE_NAME pausada com sucesso!"
+else
+    echo "Erro: Instância $INSTANCE_NAME não encontrada."
+fi

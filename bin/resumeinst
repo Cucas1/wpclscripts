@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Solicita o nome da instância
+read -p "Nome da instância a ser retomada: " INSTANCE_NAME
+
+# Diretório da instância
+INSTANCE_DIR="/opt/wordpress/$INSTANCE_NAME"
+
+if [[ -d "$INSTANCE_DIR" ]]; then
+    cd "$INSTANCE_DIR"
+    docker-compose up -d
+    echo "Instância $INSTANCE_NAME retomada com sucesso!"
+else
+    echo "Erro: Instância $INSTANCE_NAME não encontrada."
+fi
