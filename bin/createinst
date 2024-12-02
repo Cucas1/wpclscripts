@@ -28,7 +28,7 @@ mkdir -p "$INSTANCE_DIR"
 # Copiar templates para o diretório da instância
 cp "$TEMPLATES_DIR/docker-compose.yml" "$INSTANCE_DIR/docker-compose.yml" || {
   echo "Erro ao copiar docker-compose.yml"; exit 1; }
-cp "$TEMPLATES_DIR/Dockerfile" "$INSTANCE_DIR/Dockerfile" || {
+cp "$TEMPLATES_DIR/dockerfile" "$INSTANCE_DIR/dockerfile" || {
   echo "Erro ao copiar Dockerfile"; exit 1; }
 cp "$TEMPLATES_DIR/plugins.txt" "$INSTANCE_DIR/plugins.txt" || {
   echo "Erro ao copiar plugins.txt"; exit 1; }
@@ -52,7 +52,7 @@ if [[ "$STAGING_CHOICE" == "s" ]]; then
   mkdir -p "$STAGING_DIR"
   cp "$TEMPLATES_DIR/docker-compose.yml" "$STAGING_DIR/docker-compose.yml" || {
     echo "Erro ao copiar docker-compose.yml para staging"; exit 1; }
-  cp "$TEMPLATES_DIR/Dockerfile" "$STAGING_DIR/Dockerfile"
+  cp "$TEMPLATES_DIR/dockerfile" "$STAGING_DIR/dockerfile"
   cp "$TEMPLATES_DIR/plugins.txt" "$STAGING_DIR/plugins.txt"
 
   sed -i "s/INSTANCE_NAME/${INSTANCE_NAME}_staging/g" "$STAGING_DIR/docker-compose.yml"
