@@ -20,7 +20,7 @@ COPY plugins.txt /plugins.txt
 
 # Baixar WordPress e criar wp-config.php
 RUN wp core download --allow-root \
-    && wp config create --dbname=wordpress --dbuser=root --dbpass=root --dbhost=localhost --allow-root
+    && wp config create --dbname=wordpress --dbuser=root --dbpass=root --dbhost=localhost --allow-root --skip-check
 
 # Instalar plugins
 RUN wp plugin install $(cat /plugins.txt) --activate --allow-root
