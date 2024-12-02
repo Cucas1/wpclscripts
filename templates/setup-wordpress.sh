@@ -2,7 +2,12 @@
 
 # Criar wp-config.php, se não existir
 if [ ! -f wp-config.php ]; then
-    wp config create --dbname="$WORDPRESS_DB_NAME" --dbuser="$WORDPRESS_DB_USER" --dbpass="$WORDPRESS_DB_PASSWORD" --dbhost="$WORDPRESS_DB_HOST" --allow-root --skip-check
+    wp config create \
+        --dbname="$WORDPRESS_DB_NAME" \
+        --dbuser="$WORDPRESS_DB_USER" \
+        --dbpass="$WORDPRESS_DB_PASSWORD" \
+        --dbhost="$WORDPRESS_DB_HOST" \
+        --allow-root --skip-check
 fi
 
 # Instalar WordPress, se ainda não estiver instalado

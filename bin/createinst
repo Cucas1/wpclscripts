@@ -28,14 +28,22 @@ mkdir -p "$INSTANCE_DIR"
 # Copiar templates para o diretório da instância
 cp "$TEMPLATES_DIR/docker-compose.yml" "$INSTANCE_DIR/docker-compose.yml" || {
   echo "Erro ao copiar docker-compose.yml"; exit 1; }
-cp "$TEMPLATES_DIR/dockerfile" "$INSTANCE_DIR/dockerfile" || {
+cp "$TEMPLATES_DIR/Dockerfile" "$INSTANCE_DIR/Dockerfile" || {
   echo "Erro ao copiar Dockerfile"; exit 1; }
 cp "$TEMPLATES_DIR/plugins.txt" "$INSTANCE_DIR/plugins.txt" || {
   echo "Erro ao copiar plugins.txt"; exit 1; }
+cp "$TEMPLATES_DIR/setup-wordpress.sh" "$INSTANCE_DIR/setup-wordpress.sh" || {
+  echo "Erro ao copiar setup-wordpress.sh"; exit 1; }
 
 # Personalizar o docker-compose.yml
 sed -i "s/INSTANCE_NAME/$INSTANCE_NAME/g" "$INSTANCE_DIR/docker-compose.yml"
 sed -i "s/DOMAIN/$DOMAIN/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/wp_user/$WP_USER/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/wp_pass/$WP_PASS/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/admin/$WP_USER/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/admin_pass/$WP_PASS/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/admin@example.com/$WP_EMAIL/g" "$INSTANCE_DIR/docker-compose.yml"
+
 
 # Construir e iniciar a instância
 cd "$INSTANCE_DIR"
