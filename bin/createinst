@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Caminho base do repositório e templates
-REPO_BASE="$(dirname "$(readlink -f "$0")")"
-TEMPLATES_DIR="$REPO_BASE/../templates"
+# Caminho fixo para templates
+TEMPLATES_DIR="/usr/local/share/wordpress-management"
 
 # Solicitar informações ao usuário
 read -p "Nome da instância: " INSTANCE_NAME
