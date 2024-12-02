@@ -13,4 +13,3 @@ cp -r templates/* "$SHARE_DIR/" || { echo "Erro ao copiar templates para $SHARE_
 
 echo "Comandos e templates instalados com sucesso!"
 echo "Templates estão localizados em $SHARE_DIR"
-
