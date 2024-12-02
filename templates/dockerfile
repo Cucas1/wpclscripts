@@ -17,13 +17,8 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 
 # Copiar lista de plugins para a imagem
 COPY plugins.txt /plugins.txt
-
-# Baixar WordPress e criar wp-config.php
-RUN wp core download --allow-root \
-    && wp config create --dbname=wordpress --dbuser=root --dbpass=root --dbhost=localhost --allow-root --skip-check
-
-# Instalar plugins
-RUN wp plugin install $(cat /plugins.txt) --activate --allow-root
+COPY setup-wordpress.sh /usr/local/bin/setup-wordpress.sh
+RUN chmod +x /usr/local/bin/setup-wordpress.sh
 
 # Finalizar com o PHP-FPM
 CMD ["php-fpm"]
