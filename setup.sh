@@ -11,5 +11,8 @@ echo "Instalando templates no sistema..."
 mkdir -p "$SHARE_DIR" || { echo "Erro ao criar diretório para templates."; exit 1; }
 cp -r templates/* "$SHARE_DIR/" || { echo "Erro ao copiar templates para $SHARE_DIR."; exit 1; }
 
+# Ajustar permissões para setup-wordpress.sh
+chmod +x "$SHARE_DIR/setup-wordpress.sh" || { echo "Erro ao ajustar permissões para setup-wordpress.sh."; exit 1; }
+
 echo "Comandos e templates instalados com sucesso!"
 echo "Templates estão localizados em $SHARE_DIR"
