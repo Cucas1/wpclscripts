@@ -12,7 +12,7 @@ services:
       - wordpress
     networks:
       - wp_network
-      
+
   wordpress:
     build:
       context: .
@@ -29,6 +29,8 @@ services:
       WORDPRESS_ADMIN_EMAIL: admin@example.com
     volumes:
       - ./wordpress:/var/www/html
+    networks:
+      - wp_network
     command: ["sh", "-c", "php-fpm & setup-wordpress.sh && wait"]
 
   db:
@@ -42,6 +44,12 @@ services:
       MYSQL_PASSWORD: wp_pass
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - wp_network
+      
+networks:
+  wp_network: # Definição explícita da rede
+    driver: bridge
 
 volumes:
   db_data:
