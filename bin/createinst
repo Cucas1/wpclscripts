@@ -43,6 +43,7 @@ sed -i "s/wp_pass/$WP_PASS/g" "$INSTANCE_DIR/docker-compose.yml"
 sed -i "s/admin/$WP_USER/g" "$INSTANCE_DIR/docker-compose.yml"
 sed -i "s/admin_pass/$WP_PASS/g" "$INSTANCE_DIR/docker-compose.yml"
 sed -i "s/admin@example.com/$WP_EMAIL/g" "$INSTANCE_DIR/docker-compose.yml"
+sed -i "s/NGINX_PORT/8080/g" "$INSTANCE_DIR/docker-compose.yml"
 
 
 # Construir e iniciar a instância
@@ -78,6 +79,7 @@ if [[ "$STAGING_CHOICE" == "s" ]]; then
   # Substituir valores no nginx.conf de staging
   sed -i "s/DOMAIN/staging.$DOMAIN/g" "$STAGING_DIR/nginx.conf"
   sed -i "s/INSTANCE_NAME/wp_${INSTANCE_NAME}_staging/g" "$STAGING_DIR/nginx.conf"
+  sed -i "s/NGINX_PORT/8081/g" "$STAGING_DIR/docker-compose.yml"
 
   # Ajustar permissões para setup-wordpress.sh
   chmod +x "$STAGING_DIR/setup-wordpress.sh" || {
