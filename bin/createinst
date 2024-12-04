@@ -55,16 +55,33 @@ certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$WP_EMAIL" || {
   echo "Erro ao configurar SSL para o domínio $DOMAIN."
 }
 
+# Copiar e personalizar nginx.conf
+cp "$TEMPLATES_DIR/nginx.conf" "$INSTANCE_DIR/nginx.conf" || {
+  echo "Erro ao copiar nginx.conf"; exit 1; }
+sed -i "s/DOMAIN/$DOMAIN/g" "$INSTANCE_DIR/nginx.conf"
+sed -i "s/INSTANCE_NAME/wp_$INSTANCE_NAME/g" "$INSTANCE_DIR/nginx.conf"
+
 # Configurar instância staging, se solicitado
 if [[ "$STAGING_CHOICE" == "s" ]]; then
   mkdir -p "$STAGING_DIR"
   cp "$TEMPLATES_DIR/docker-compose.yml" "$STAGING_DIR/docker-compose.yml" || {
     echo "Erro ao copiar docker-compose.yml para staging"; exit 1; }
-  cp "$TEMPLATES_DIR/dockerfile" "$STAGING_DIR/dockerfile"
-  cp "$TEMPLATES_DIR/plugins.txt" "$STAGING_DIR/plugins.txt"
+  cp "$TEMPLATES_DIR/dockerfile" "$STAGING_DIR/dockerfile" || {
+    echo "Erro ao copiar Dockerfile para staging"; exit 1; }
+  cp "$TEMPLATES_DIR/plugins.txt" "$STAGING_DIR/plugins.txt" || {
+    echo "Erro ao copiar plugins.txt para staging"; exit 1; }
+  cp "$TEMPLATES_DIR/setup-wordpress.sh" "$STAGING_DIR/setup-wordpress.sh" || {
+    echo "Erro ao copiar setup-wordpress.sh para staging"; exit 1; }
+  cp "$TEMPLATES_DIR/nginx.conf" "$STAGING_DIR/nginx.conf" || {
+    echo "Erro ao copiar nginx.conf para staging"; exit 1; }
 
-  sed -i "s/INSTANCE_NAME/${INSTANCE_NAME}_staging/g" "$STAGING_DIR/docker-compose.yml"
-  sed -i "s/DOMAIN/staging.$DOMAIN/g" "$STAGING_DIR/docker-compose.yml"
+  # Substituir valores no nginx.conf de staging
+  sed -i "s/DOMAIN/staging.$DOMAIN/g" "$STAGING_DIR/nginx.conf"
+  sed -i "s/INSTANCE_NAME/wp_${INSTANCE_NAME}_staging/g" "$STAGING_DIR/nginx.conf"
+
+  # Ajustar permissões para setup-wordpress.sh
+  chmod +x "$STAGING_DIR/setup-wordpress.sh" || {
+    echo "Erro ao ajustar permissões do setup-wordpress.sh no staging"; exit 1; }
 
   cd "$STAGING_DIR"
   docker-compose build wordpress
