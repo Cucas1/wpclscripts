@@ -34,6 +34,37 @@ cp "$TEMPLATES_DIR/plugins.txt" "$INSTANCE_DIR/plugins.txt" || {
   echo "Erro ao copiar plugins.txt"; exit 1; }
 cp "$TEMPLATES_DIR/setup-wordpress.sh" "$INSTANCE_DIR/setup-wordpress.sh" || {
   echo "Erro ao copiar setup-wordpress.sh"; exit 1; }
+  
+# Verificar se nginx.conf é um diretório ou não existe
+if [[ -d "$INSTANCE_DIR/nginx.conf" ]]; then
+  echo "O nginx.conf no diretório da instância principal é um diretório. Renomeando para nginx.d..."
+  mv "$INSTANCE_DIR/nginx.conf" "$INSTANCE_DIR/nginx.d" || {
+    echo "Erro ao renomear nginx.conf como diretório para nginx.d"; exit 1; }
+fi
+
+if [[ ! -f "$INSTANCE_DIR/nginx.conf" ]]; then
+  # Criar arquivo nginx.conf para a instância principal
+cat > "$INSTANCE_DIR/nginx.conf" <<EOL
+events {}
+
+http {
+    server {
+        listen 80;
+        server_name DOMAIN;
+
+        location / {
+            proxy_pass http://INSTANCE_NAME:80;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+EOL
+
+echo "Arquivo nginx.conf criado com sucesso para a instância principal em $INSTANCE_DIR/nginx.conf"
+fi
 
 # Personalizar o docker-compose.yml
 sed -i "s/INSTANCE_NAME/$INSTANCE_NAME/g" "$INSTANCE_DIR/docker-compose.yml"
@@ -75,6 +106,37 @@ if [[ "$STAGING_CHOICE" == "s" ]]; then
     echo "Erro ao copiar setup-wordpress.sh para staging"; exit 1; }
   cp "$TEMPLATES_DIR/nginx.conf" "$STAGING_DIR/nginx.conf" || {
     echo "Erro ao copiar nginx.conf para staging"; exit 1; }
+
+  # Verificar se nginx.conf é um diretório ou não existe no staging
+  if [[ -d "$STAGING_DIR/nginx.conf" ]]; then
+    echo "O nginx.conf no diretório da instância staging é um diretório. Renomeando para nginx.d..."
+    mv "$STAGING_DIR/nginx.conf" "$STAGING_DIR/nginx.d" || {
+      echo "Erro ao renomear nginx.conf como diretório para nginx.d na instância staging"; exit 1; }
+  fi
+
+  if [[ ! -f "$STAGING_DIR/nginx.conf" ]]; then
+    # Criar arquivo nginx.conf para a instância staging
+    cat > "$STAGING_DIR/nginx.conf" <<EOL
+    events {}
+
+    http {
+        server {
+            listen 80;
+            server_name staging.$DOMAIN;
+
+            location / {
+                proxy_pass http://staging-$INSTANCE_NAME:80;
+                proxy_set_header Host \$host;
+                proxy_set_header X-Real-IP \$remote_addr;
+                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto \$scheme;
+            }
+        }
+    }
+    EOL
+
+      echo "Arquivo nginx.conf criado com sucesso para a instância staging em $STAGING_DIR/nginx.conf"
+  fi
 
   # Substituir valores no nginx.conf de staging
   sed -i "s/DOMAIN/staging.$DOMAIN/g" "$STAGING_DIR/nginx.conf"
