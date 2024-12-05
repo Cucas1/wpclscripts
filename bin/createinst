@@ -44,7 +44,7 @@ fi
 
 if [[ ! -f "$INSTANCE_DIR/nginx.conf" ]]; then
   # Criar arquivo nginx.conf para a instância principal
-cat > "$INSTANCE_DIR/nginx.conf" <<EOL
+  cat > "$INSTANCE_DIR/nginx.conf" <<- 'EOL'
 events {}
 
 http {
@@ -115,27 +115,24 @@ if [[ "$STAGING_CHOICE" == "s" ]]; then
   fi
 
   if [[ ! -f "$STAGING_DIR/nginx.conf" ]]; then
-    # Criar arquivo nginx.conf para a instância staging
-    cat > "$STAGING_DIR/nginx.conf" <<EOL
-    events {}
+    cat > "$STAGING_DIR/nginx.conf" <<- 'EOL'
+events {}
 
-    http {
-        server {
-            listen 80;
-            server_name staging.$DOMAIN;
+http {
+    server {
+        listen 80;
+        server_name staging.$DOMAIN;
 
-            location / {
-                proxy_pass http://staging-$INSTANCE_NAME:80;
-                proxy_set_header Host \$host;
-                proxy_set_header X-Real-IP \$remote_addr;
-                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto \$scheme;
-            }
+        location / {
+            proxy_pass http://staging-$INSTANCE_NAME:80;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
         }
     }
-    EOL
-
-      echo "Arquivo nginx.conf criado com sucesso para a instância staging em $STAGING_DIR/nginx.conf"
+}
+EOL
   fi
 
   # Substituir valores no nginx.conf de staging
